@@ -118,7 +118,7 @@ try:
     maize_model = CropformerGeneticsOnly(
         **BEST_PARAMS, input_size=MAIZE_INPUT_SIZE_GENO, hidden_size=HIDDEN_SIZE
     ).to(DEVICE)
-    maize_model.load_state_dict(torch.load('models/best_model_with_env_fold_5.pth', map_location=DEVICE))
+    maize_model.load_state_dict(torch.load('models/maize_model.pth', map_location=DEVICE))
     maize_model.eval()
     maize_scaler = joblib.load('scalers/maize_scaler.pkl')
     print("✅ Maize model and scaler loaded successfully.")
@@ -136,7 +136,7 @@ try:
         hidden_dim=HIDDEN_SIZE,
         **BEST_PARAMS
     ).to(DEVICE)
-    wheat_model.load_state_dict(torch.load('models/best_model_with_env_fold_4.pth', map_location=DEVICE))
+    wheat_model.load_state_dict(torch.load('models/wheat_model.pth', map_location=DEVICE))
     wheat_model.eval()
     wheat_geno_scaler = joblib.load('scalers/wheat_geno_scaler.pkl')
     wheat_env_scaler = joblib.load('scalers/wheat_env_scaler.pkl')
