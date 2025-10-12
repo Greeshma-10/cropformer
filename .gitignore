@@ -1,0 +1,28 @@
+# Bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# VS Code settings
+.vscode/
+
+# Model files
+models/*.pth
+
+# Scaler files
+scalers/*.pkl
+
+# Uploaded CSV files
+uploads/*.csv
+
+# Logs or temporary files
+*.log
+
+# System files
+.DS_Store
+Thumbs.db

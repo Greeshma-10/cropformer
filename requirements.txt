@@ -1,0 +1,8 @@
+Flask
+torch
+pandas
+numpy
+scikit-learn
+joblib
+lightning
+werkzeug
