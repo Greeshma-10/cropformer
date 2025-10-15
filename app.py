@@ -22,7 +22,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # --- Model Hyperparameters (Must match your trained models) ---
-# --- Model Hyperparameters ---
 MAIZE_INPUT_SIZE_GENO = 10003   # adjust to match the model’s saved state
 WHEAT_INPUT_SIZE_GENO = 10000   # whatever it was trained with
 WHEAT_INPUT_SIZE_ENV = 6        # since wheat uses 6 environmental variables
@@ -113,7 +112,6 @@ class CropformerWithEnv(nn.Module):
 # ===================================================================
 print("--- Loading models and scalers into memory... ---")
 # --- Load Maize Model ---
-# --- Load Maize Model ---
 try:
     maize_model = CropformerGeneticsOnly(
         **BEST_PARAMS, input_size=MAIZE_INPUT_SIZE_GENO, hidden_size=HIDDEN_SIZE
@@ -127,7 +125,6 @@ except Exception as e:
     print(f"⚠️ Could not load Maize model. Error: {e}")
 
 
-# --- Load Wheat Model ---
 # --- Load Wheat Model ---
 try:
     wheat_model = CropformerWithEnv(
@@ -181,7 +178,7 @@ def predict():
 
         predictions_df = None
         model_info = {}
-
+        
         # --- Call the correct model ---
         if crop_type == 'maize' and maize_model:
             try:
@@ -193,10 +190,9 @@ def predict():
                 
                 predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_DTT'], index=df.index)
 
-                # Model description (constant)
                 model_info = {
                     "crop": "Maize",
-                    "trait": "Days to Tasseling (DTT)",
+                    "trait": "Days to Tasseling",
                     "correlation": 0.9441
                 }
 
@@ -219,43 +215,51 @@ def predict():
 
                 predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_TKW'], index=df.index)
 
-                # Model description (constant)
                 model_info = {
                     "crop": "Wheat",
-                    "trait": "Thousand Kernel Weight (TKW)",
+                    "trait": "Thousand Kernel Weight",
                     "correlation": 0.6617
                 }
-                # Determine trait interpretation
-                if crop_type == 'maize':
-                    trait_interpretation = "Lower Days to Tasselling (DTT) indicates earlier flowering and potentially shorter crop duration."
-                elif crop_type == 'wheat':
-                    trait_interpretation = "Higher Thousand Kernel Weight (TKW) generally correlates with better grain filling and yield."
-                else:
-                    trait_interpretation = ""
-
-                # Pass it to template
-                return render_template(
-                    'index.html',
-                    predictions=predictions_df.round(2),
-                    model_info=model_info,
-                    interpretation=trait_interpretation
-                )
-
-
             except Exception as e:
                 return render_template('index.html', error=f"Wheat prediction failed: {e}")
+        
+        # --- After a prediction is made, generate interpretations and summaries ---
+        if predictions_df is not None and not predictions_df.empty:
+            trait_interpretation = ""
+            result_summary = ""
 
-        # --- Render results ---
-        if predictions_df is not None:
-            return render_template('index.html',
-                                   predictions=predictions_df.round(2),
-                                   model_info=model_info)
+            if crop_type == 'maize':
+                trait_interpretation = "Lower Days to Tasselling (DTT) indicates earlier flowering and potentially shorter crop duration."
+                # Find the best sample (lowest DTT)
+                best_sample_row = predictions_df.loc[predictions_df['Predicted_DTT'].idxmin()]
+                best_sample_id = best_sample_row.name
+                best_value = best_sample_row['Predicted_DTT']
+                result_summary = f"The standout sample is '{best_sample_id}' with the lowest Days to Tasseling ({best_value:.2f} days). This suggests it is the fastest-flowering variety, which could be ideal for shorter growing seasons."
+
+            elif crop_type == 'wheat':
+                trait_interpretation = "Higher Thousand Kernel Weight (TKW) generally correlates with better grain filling and yield."
+                # Find the best sample (highest TKW)
+                best_sample_row = predictions_df.loc[predictions_df['Predicted_TKW'].idxmax()]
+                best_sample_id = best_sample_row.name
+                best_value = best_sample_row['Predicted_TKW']
+                result_summary = f"The standout sample is '{best_sample_id}' with the highest Thousand Kernel Weight ({best_value:.2f} grams). This indicates it has the best potential for high yield among the tested varieties."
+
+            # --- Render results for ANY successful prediction ---
+            return render_template(
+                'index.html',
+                predictions=predictions_df.round(2),
+                model_info=model_info,
+                interpretation=trait_interpretation,
+                result_summary=result_summary
+            )
         else:
+            # Handle cases where prediction didn't run or returned empty
             return render_template('index.html',
-                                   error=f"Model for '{crop_type}' not available or an error occurred.")
+                                   error=f"Model for '{crop_type}' not available or an error occurred during prediction.")
             
     return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
     app.run(debug=True)
+

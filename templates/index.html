@@ -1,144 +1,369 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cropformer Genomic Prediction</title>
+    <title>DNA Base Crop Selector - AI-Powered Genomic Prediction</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        .hero-bg {
+            background: linear-gradient(135deg, rgba(2, 59, 8, 0.9) 0%, rgba(26, 117, 74, 0.9) 100%), url('https://images.unsplash.com/photo-1587814217688-2810a4e7616c?q=80&w=2070&auto=format&fit=crop') center center/cover no-repeat;
+        }
+        /* Spinner for loading state */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #22c55e;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .section-divider {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+        }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-lime-50 text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        
-        <!-- Header Section -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-900">Cropformer</h1>
-            <p class="text-lg text-gray-600 mt-2">Genomic Prediction for Crop Improvement</p>
-        </header>
+    <!-- Header / Navigation -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2">
+                <svg class="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c.251.023.501.05.75.082a9.75 9.75 0 018.25 8.25c.032.249.059.5.082.75m0 0H3.75m16.5 0c.251.023.501.05.75.082a9.75 9.75 0 01-8.25 8.25c-.249.032-.5.059-.75.082m0 0v-5.714a2.25 2.25 0 00-.659-1.591L13.5 14.5m0 0l-4.5-4.5m4.5 4.5l4.5-4.5M3.75 12c.251-.023.501-.05.75-.082a9.75 9.75 0 018.25-8.25c.249-.032.5-.059.75-.082m0 0V3.75m0 16.5V20.25" />
+                </svg>
+                <span class="text-xl md:text-2xl font-bold text-gray-800">DNA Based Crop Selector</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-6 text-gray-600 font-medium">
+                <a href="#about" class="hover:text-green-600 transition-colors">About</a>
+                <a href="#how-it-works" class="hover:text-green-600 transition-colors">How It Works</a>
+                 <a href="#technology" class="hover:text-green-600 transition-colors">Technology</a>
+                <a href="#predict" class="bg-green-600 text-white px-5 py-2 rounded-full hover:bg-green-700 transition-all shadow-sm">Start Predicting</a>
+            </div>
+        </nav>
+    </header>
 
-        <!-- Main Content Section -->
-        <main class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-bg text-white py-20 md:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">Unlock Crop Potential with DNA-Powered Predictions</h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto text-green-100">
+                    Leverage our cutting-edge transformer model to analyze genomic and environmental data, accurately forecasting key crop traits.
+                </p>
+                <a href="#predict" class="mt-8 inline-block bg-white text-green-700 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-100 transition-transform transform hover:scale-105 shadow-lg">
+                    Go to Prediction Tool
+                </a>
+            </div>
+        </section>
 
-            <!-- Prediction Form -->
-            <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data" class="space-y-6">
-                
-                <div>
-                    <label for="crop_type" class="block text-sm font-medium text-gray-700 mb-1">1. Select Crop</label>
-                    <select id="crop_type" name="crop_type" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
-                        <option value="" disabled selected>-- Choose a crop --</option>
-                        <option value="wheat">Wheat (for Thousand-Kernel Weight)</option>
-                        <option value="maize">Maize (for Days to Tasseling)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="file" class="block text-sm font-medium text-gray-700 mb-1">2. Upload Genotype & Environment Data (.csv)</label>
-                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div class="space-y-1 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <div class="flex text-sm text-gray-600">
-                                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                    <span>Upload a file</span>
-                                    <input id="file-upload" name="file" type="file" class="sr-only" required>
-                                </label>
-                                <p class="pl-1">or drag and drop</p>
-                            </div>
-                            <p class="text-xs text-gray-500">CSV up to 10MB</p>
+        <!-- "How It Works" Section -->
+        <section id="how-it-works" class="py-20">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl font-bold mb-2">A Simple, Powerful Process</h2>
+                <p class="text-gray-600 mb-12 max-w-2xl mx-auto">Get valuable insights from your genomic and environmental data in a few steps.</p>
+                <div class="grid md:grid-cols-3 gap-12">
+                    <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
+                        <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
+                        <h3 class="text-xl font-semibold mb-2">1. Select Crop & Conditions</h3>
+                        <p class="text-gray-600">Choose your crop, trait, and input the local environmental conditions for a tailored prediction.</p>
+                    </div>
+                    <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
+                        <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">2. Upload Genomic Data</h3>
+                        <p class="text-gray-600">Provide a CSV file containing the SNP (Single Nucleotide Polymorphism) data for your crop samples.</p>
+                    </div>
+                    <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
+                        <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">3. Get & Download Predictions</h3>
+                        <p class="text-gray-600">Our AI model returns instant predictions for your selected trait, ready for analysis and download.</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
+        <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
+
+        <!-- Prediction Tool Section -->
+        <section id="predict" class="py-20">
+            <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+                <header class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-gray-900">Genomic Prediction Tool</h2>
+                    <p class="text-lg text-gray-600 mt-2">Upload your data below to begin.</p>
+                </header>
+
+                <div class="bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-100">
+                    <form id="prediction-form" action="{{ url_for('predict') }}#results-anchor" method="post" enctype="multipart/form-data" class="space-y-8">
+                        
+                        <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
+                            <legend class="text-lg font-semibold text-gray-800 px-2">Step 1: Select Crop & Trait</legend>
+                            <select id="crop_type" name="crop_type" required class="mt-4 block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm transition">
+                                <option value="" disabled selected>-- Choose a crop --</option>
+                                <option value="wheat">Wheat (for Thousand-Kernel Weight)</option>
+                                <option value="maize">Maize (for Days to Tasseling)</option>
+                                <option value="chickpea" disabled>Chickpea (Coming Soon)</option>
+                                <option value="tomato" disabled>Tomato (Coming Soon)</option>
+                            </select>
+                        </fieldset>
+
+                        <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
+                             <legend class="text-lg font-semibold text-gray-800 px-2">Step 2: Environmental Conditions (Optional)</legend>
+                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                                 <div>
+                                     <label for="temperature" class="text-sm font-medium text-gray-700">Avg. Temperature (°C)</label>
+                                     <input type="number" step="0.1" name="temperature" id="temperature" placeholder="e.g., 25.5" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
+                                 </div>
+                                  <div>
+                                     <label for="rainfall" class="text-sm font-medium text-gray-700">Annual Rainfall (mm)</label>
+                                     <input type="number" step="1" name="rainfall" id="rainfall" placeholder="e.g., 800" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
+                                 </div>
+                                  <div>
+                                     <label for="soil-ph" class="text-sm font-medium text-gray-700">Soil pH</label>
+                                     <input type="number" step="0.1" name="soil_ph" id="soil-ph" placeholder="e.g., 6.5" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
+                                 </div>
+                             </div>
+                        </fieldset>
+
+                        <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
+                             <legend class="text-lg font-semibold text-gray-800 px-2">Step 3: Upload Genomic Data (.csv)</legend>
+                            <div id="drop-zone" class="mt-4 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg transition-colors">
+                                <div class="space-y-2 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+                                            <span>Upload a file</span>
+                                            <input id="file-upload" name="file" type="file" class="sr-only" required>
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p id="file-name" class="text-sm text-gray-500">CSV up to 10MB</p>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <div>
+                            <button id="submit-button" type="submit" class="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-105">
+                                <span id="button-text">Make Prediction</span>
+                                <div id="button-loader" class="loader hidden"></div>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="results-anchor" class="pt-10 -mt-10"></div>
+
+                    {% if model_info %}
+                    <div class="mb-8 mt-10 bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2 flex items-center">
+                            <svg class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Model Description
+                        </h3>
+                        <div class="text-gray-700 space-y-1 pl-8">
+                            <p><strong>Crop:</strong> {{ model_info.crop }}</p>
+                            <p><strong>Predicted Trait:</strong> {{ model_info.trait }} {% if model_info.trait == "Days to Tasselling" %}(in <strong>days</strong>){% elif model_info.trait == "Thousand Kernel Weight" %}(in <strong>grams</strong>){% endif %}</p>
+                            <p><strong>Correlation Coefficient (r):</strong> <span class="font-mono text-blue-800 bg-blue-200 px-2 py-1 rounded">{{ model_info.correlation }}</span></p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if predictions is defined and not predictions.empty %}
+                    <!-- PROMINENT RESULTS SECTION -->
+                    <div class="mt-12">
+                        <div class="bg-white border-2 border-green-500 rounded-2xl shadow-2xl p-6 lg:p-8 w-full">
+                          <div>
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                                <h2 class="text-3xl font-bold text-gray-800 flex items-center mb-3 md:mb-0">
+                                    <svg class="h-8 w-8 mr-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Prediction Results
+                                </h2>
+                                <button onclick="downloadCSV()" class="bg-green-600 border border-green-700 text-white hover:bg-green-700 font-medium py-2 px-5 rounded-lg flex items-center space-x-2 transition shadow-md">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    <span>Download CSV</span>
+                                </button>
+                            </div>
+                            <p class="text-gray-700 mb-6 text-center">The model has successfully predicted the target trait values for your uploaded samples.</p>
+
+                            <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-inner">
+                                <table id="results-table" class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th scope="col" class="py-3 px-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Sample ID</th>
+                                            {% for col in predictions.columns %}
+                                            <th scope="col" class="py-3 px-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">{{ col }}</th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        {% for index, row in predictions.iterrows() %}
+                                        <tr class="hover:bg-lime-50">
+                                            <td class="py-3 px-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ index }}</td>
+                                            {% for value in row %}
+                                            <td class="py-3 px-4 whitespace-nowrap text-sm text-gray-600">{{ value }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-gray-600 text-sm mt-4 text-center"><em>(Predicted {{ model_info.trait }}.)</em></p>
+                            <p class="text-gray-800 text-center mt-5 font-medium bg-yellow-100 border border-yellow-300 rounded-md p-3 shadow">{{ interpretation }}</p>
+
+                            {% if result_summary %}
+                            <div class="mt-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-800 rounded-r-lg shadow">
+                                <h4 class="font-bold flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                    Key Insight
+                                </h4>
+                                <p class="mt-2 pl-7">{{ result_summary }}</p>
+                            </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if error %}
+                    <div class="mt-10 p-4 bg-red-100 border-l-4 border-red-500 text-red-800 rounded-r-lg shadow-sm">
+                        <h3 class="font-bold">An Error Occurred</h3><p>{{ error }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
+
+        <!-- Technology Section -->
+        <section id="technology" class="py-20 bg-transparent">
+             <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Make Prediction
-                    </button>
+                     <img src="https://images.shiksha.com/mediadata/shikshaOnline/mailers/2021/naukri-learning/oct/27oct/What-is-Deep-Learning-and-Neural-Networks.jpg" alt="Abstract representation of a neural network" class="rounded-lg shadow-lg">
                 </div>
-            </form>
-            {% if model_info %}
-            <div class="mb-8 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded text-center">
-            <h2 class="text-xl font-semibold text-gray-900 mb-1">🌿 Model Description</h2>
-            <p class="text-gray-700">
-                <strong>Crop:</strong> {{ model_info.crop }} <br>
-                <strong>Predicted Trait:</strong> {{ model_info.trait }}
-                {% if model_info.trait == "Days to Tasselling" %}
-                (in <strong>days</strong>)
-                {% elif model_info.trait == "Thousand Kernel Weight" %}
-                (in <strong>grams</strong>)
-                {% endif %} <br>
-                <strong>Correlation Coefficient (r):</strong> {{ model_info.correlation }}
-            </p>
-            </div>
-            {% endif %}
-
-
-
-           <!-- Detailed Prediction Results -->
-           {% if predictions is defined and not predictions.empty %}
-
-
-            <div class="flex justify-center mt-8">
-            <div class="bg-green-50 border border-green-400 rounded-2xl shadow-lg p-6 w-full max-w-3xl text-center">
-                <h2 class="text-2xl font-bold text-green-700 mb-2">🌾 Prediction Results</h2>
-                <p class="text-gray-700 mb-4">
-                The model has predicted the target trait values for your uploaded samples based on genomic and environmental data.
-                </p>
-
-                <div class="overflow-x-auto">
-                <table class="min-w-full border border-gray-200 rounded-lg">
-                    <thead class="bg-green-100">
-                    <tr>
-                        {% for col in predictions.columns %}
-                        <th class="py-2 px-4 text-gray-800 font-semibold border">{{ col }}</th>
-                        {% endfor %}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for index, row in predictions.iterrows() %}
-                    <tr class="hover:bg-green-50">
-                        <td class="py-2 px-4 border text-gray-700 font-medium">{{ index }}</td>
-                        {% for value in row %}
-                        <td class="py-2 px-4 border text-gray-600">{{ value }}</td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                <div>
+                    <h2 class="text-3xl font-bold mb-4">The Technology Behind Our Selector</h2>
+                    <p class="text-gray-600 mb-4">
+                        Our platform is powered by an interpretable deep learning framework designed specifically for genomic prediction. The model architecture combines two powerful components:
+                    </p>
+                     <ul class="list-disc list-inside text-gray-600 space-y-2">
+                        <li><strong>Convolutional Neural Networks (CNNs)</strong> to effectively extract features and patterns from raw SNP data.</li>
+                        <li><strong>Multi-Head Self-Attention</strong>, the core mechanism of Transformers, to capture complex, long-range interactions between different genetic markers across the genome.</li>
+                     </ul>
+                     <p class="text-gray-600 mt-4">
+                        This hybrid approach allows our model to achieve state-of-the-art accuracy, identifying the subtle genetic signals that influence key agricultural traits.
+                    </p>
                 </div>
+             </div>
+        </section>
 
-                <p class="text-gray-600 text-sm mt-3">
-                *(Predicted {{ model_info.trait }}
-                {% if model_info.trait == "Days to Tasselling" %}in days{% elif model_info.trait == "Thousand Kernel Weight" %}in grams{% endif %}
-                . All values rounded to two decimal places.)*
-                </p>
+        <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
 
-                <p class="text-gray-700 text-center mt-4 font-medium">
-                {{ interpretation }}
-                </p>
-
-
+        
+    </main>
+    
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="font-bold text-lg mb-4">DNA Base Crop Selector</h3>
+                    <p class="text-gray-400 text-sm">AI-Powered Genomic Prediction for Crop Improvement.</p>
+                </div>
+                 <div class="md:col-span-1">
+                    <h3 class="font-semibold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#about" class="hover:text-white">About Us</a></li>
+                        <li><a href="#how-it-works" class="hover:text-white">How It Works</a></li>
+                        <li><a href="#technology" class="hover:text-white">Technology</a></li>
+                        <li><a href="#predict" class="hover:text-white">Prediction Tool</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-1">
+                    <h3 class="font-semibold mb-4">Contact</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">support@dnacropselector.dev</a></li>
+                        <li><a href="#" class="hover:text-white">Join our Newsletter</a></li>
+                    </ul>
+                </div>
             </div>
+            <div class="mt-10 border-t border-gray-700 pt-6 text-center text-gray-500 text-sm">
+                &copy; 2024 DNA Base Crop Selector. All Rights Reserved.
             </div>
-            {% endif %}
+        </div>
+    </footer>
 
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileUpload = document.getElementById('file-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const form = document.getElementById('prediction-form');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const buttonLoader = document.getElementById('button-loader');
 
-            <!-- Error Message Section -->
-            {% if error %}
-            <div class="mt-8 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
-                <h3 class="font-bold">An Error Occurred</h3>
-                <p>{{ error }}</p>
-            </div>
-            {% endif %}
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-green-500', 'bg-green-50'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-green-500', 'bg-green-50'); });
 
-        </main>
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-green-500', 'bg-green-50');
+            if (e.dataTransfer.files.length) {
+                fileUpload.files = e.dataTransfer.files;
+                updateFileName();
+            }
+        });
+        
+        fileUpload.addEventListener('change', updateFileName);
 
-    </div>
+        function updateFileName() {
+            fileNameDisplay.textContent = fileUpload.files.length > 0 ? fileUpload.files[0].name : 'CSV up to 10MB';
+        }
+
+        form.addEventListener('submit', () => {
+            buttonText.classList.add('hidden');
+            buttonLoader.classList.remove('hidden');
+            submitButton.disabled = true;
+        });
+
+        function downloadCSV() {
+            const table = document.getElementById('results-table');
+            let csv = [];
+            for (let i = 0; i < table.rows.length; i++) {
+                let row = [], cols = table.rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length; j++) {
+                    row.push('"' + cols[j].innerText + '"');
+                }
+                csv.push(row.join(','));
+            }
+            const csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'prediction_results.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
 </body>
 </html>
+
