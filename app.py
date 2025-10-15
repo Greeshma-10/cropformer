@@ -160,7 +160,6 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """Handles the file upload and prediction logic."""
     if 'file' not in request.files:
         return redirect(request.url)
     
@@ -175,33 +174,37 @@ def predict():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # --- Read and process the uploaded data ---
         try:
             df = pd.read_csv(filepath, index_col=0)
         except Exception as e:
             return render_template('index.html', error=f"Error reading CSV: {e}")
 
         predictions_df = None
+        model_info = {}
 
-        # --- Call the correct model based on user selection ---
+        # --- Call the correct model ---
         if crop_type == 'maize' and maize_model:
             try:
-                # Prepare data for Maize model
                 X_scaled = maize_scaler.transform(df.values)
                 X_tensor = torch.from_numpy(X_scaled).to(torch.float32).to(DEVICE)
 
-                # Make prediction
                 with torch.no_grad():
                     output = maize_model(X_tensor)
                 
                 predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_DTT'], index=df.index)
+
+                # Model description (constant)
+                model_info = {
+                    "crop": "Maize",
+                    "trait": "Days to Tasseling (DTT)",
+                    "correlation": 0.9441
+                }
 
             except Exception as e:
                 return render_template('index.html', error=f"Maize prediction failed: {e}")
 
         elif crop_type == 'wheat' and wheat_model:
             try:
-                # Prepare data for Wheat GxE model
                 marker_cols = [col for col in df.columns if 'Marker_' in col]
                 env_cols = [col for col in df.columns if 'env_' in col]
 
@@ -210,23 +213,49 @@ def predict():
                 
                 X_geno_tensor = torch.from_numpy(X_geno_scaled).to(torch.float32).to(DEVICE)
                 X_env_tensor = torch.from_numpy(X_env_scaled).to(torch.float32).to(DEVICE)
-                
-                # Make prediction
+
                 with torch.no_grad():
                     output = wheat_model(X_geno_tensor, X_env_tensor)
 
                 predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_TKW'], index=df.index)
-            
+
+                # Model description (constant)
+                model_info = {
+                    "crop": "Wheat",
+                    "trait": "Thousand Kernel Weight (TKW)",
+                    "correlation": 0.6617
+                }
+                # Determine trait interpretation
+                if crop_type == 'maize':
+                    trait_interpretation = "Lower Days to Tasselling (DTT) indicates earlier flowering and potentially shorter crop duration."
+                elif crop_type == 'wheat':
+                    trait_interpretation = "Higher Thousand Kernel Weight (TKW) generally correlates with better grain filling and yield."
+                else:
+                    trait_interpretation = ""
+
+                # Pass it to template
+                return render_template(
+                    'index.html',
+                    predictions=predictions_df.round(2),
+                    model_info=model_info,
+                    interpretation=trait_interpretation
+                )
+
+
             except Exception as e:
                 return render_template('index.html', error=f"Wheat prediction failed: {e}")
 
+        # --- Render results ---
         if predictions_df is not None:
-            # Pass the predictions back to the same page to be displayed
-            return render_template('index.html', predictions=predictions_df.round(2))
+            return render_template('index.html',
+                                   predictions=predictions_df.round(2),
+                                   model_info=model_info)
         else:
-            return render_template('index.html', error=f"Model for '{crop_type}' not available or an error occurred.")
+            return render_template('index.html',
+                                   error=f"Model for '{crop_type}' not available or an error occurred.")
             
     return redirect(url_for('index'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
