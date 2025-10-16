@@ -2,42 +2,12 @@ import os
 import torch
 import pandas as pd
 import joblib
-import gdown
 import torch.nn as nn
 import numpy as np
 from sklearn.impute import SimpleImputer
 
 # ===================================================================
-# 1. FILE DOWNLOADER
-# ===================================================================
-
-# --- IMPORTANT ---
-# You must update these IDs with the correct Google Drive file IDs for your trained model and scaler.
-FILES_TO_DOWNLOAD = {
-    "models/rice.pth": "YOUR_GOOGLE_DRIVE_ID_FOR_RICE_MODEL",
-    "scalers/rice_scaler.pkl": "YOUR_GOOGLE_DRIVE_ID_FOR_RICE_SCALER",
-}
-
-def download_files_if_needed():
-    """Checks for the existence of model files and downloads them if missing."""
-    print("--- Checking for Rice model files... ---")
-    for filepath, file_id in FILES_TO_DOWNLOAD.items():
-        if file_id.startswith("YOUR_"):
-            print(f"⚠️ Warning: Placeholder file ID found for {filepath}. Please update it.")
-            continue
-            
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        if not os.path.exists(filepath):
-            print(f"Downloading {filepath}...")
-            url = f'https://drive.google.com/uc?id={file_id}'
-            gdown.download(url, filepath, quiet=False)
-        else:
-            print(f"File '{filepath}' already exists. Skipping download.")
-    print("--- File check complete. ---")
-
-
-# ===================================================================
-# 2. MODEL DEFINITION (Adapted from your Rice training script)
+# 1. MODEL DEFINITION (Adapted from your Rice training script)
 # ===================================================================
 class SelfAttention(nn.Module):
     """
@@ -83,27 +53,34 @@ class SelfAttention(nn.Module):
         return output
 
 # ===================================================================
-# 3. PREDICTION FUNCTION
+# 2. PREDICTION FUNCTION
 # ===================================================================
 def predict_rice_yield(df_input):
     """
     Runs the full prediction pipeline for the rice model.
+    This version assumes model files are already present locally.
     """
     print("--- Starting Rice Prediction ---")
     
-    # --- Step 1: Ensure model files are available ---
-    download_files_if_needed()
-
-    # --- Step 2: Load scaler and model ---
+    # --- Step 1: Load scaler and model ---
     try:
         scaler = joblib.load('scalers/rice_scaler.pkl')
         print("✅ Rice scaler loaded.")
 
         DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
-        # These hyperparameters should match those used during the final training of the saved model.
-        # We are using the values from your training script's main execution block.
         input_size = scaler.n_features_in_
+        
+        # Check if the number of features in the input data matches the scaler.
+        if df_input.shape[1] != input_size:
+            error_msg = (
+                f"Input data has the wrong number of features.\n"
+                f" - The model was trained on {input_size} features.\n"
+                f" - Your uploaded file has {df_input.shape[1]} features.\n"
+                f"Please check your CSV file to ensure it has the correct number of columns."
+            )
+            raise ValueError(error_msg)
+
         model = SelfAttention(
             num_attention_heads=8,
             input_size=input_size,
@@ -117,36 +94,31 @@ def predict_rice_yield(df_input):
         print("✅ Rice model loaded successfully.")
 
     except FileNotFoundError as e:
-        raise RuntimeError(f"A required model file was not found: {e}. Please check the download paths.")
+        raise RuntimeError(f"A required model file was not found: {e}. Ensure 'rice.pth' and 'rice_scaler.pkl' are in the correct folders.")
     except Exception as e:
         raise RuntimeError(f"An error occurred while loading the model or scalers: {e}")
 
-    # --- Step 3: Preprocess input data ---
+    # --- Step 2: Preprocess input data ---
     try:
-        # The training script used SimpleImputer for missing values (-9 and NaN)
-        # We replicate that step here.
         data_values = df_input.values
         data_values[data_values == -9] = np.nan
         
-        # NOTE: Ideally, the imputer should be fitted on training data and saved.
-        # For inference, we create and fit a new one on the input data.
         imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
         data_imputed = imputer.fit_transform(data_values)
 
-        # Apply the loaded scaler
         X_scaled = scaler.transform(data_imputed)
-
-        # Convert to tensor
         X_tensor = torch.from_numpy(X_scaled).float().to(DEVICE)
 
     except Exception as e:
-         raise ValueError(f"An error occurred during data preprocessing: {e}")
-   
-    # --- Step 4: Make Predictions ---
+       raise ValueError(f"An error occurred during data preprocessing: {e}")
+    
+    # --- Step 3: Make Predictions ---
     with torch.no_grad():
         output = model(X_tensor)
     
-    predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_Yield'], index=df_input.index)
+    # Since there's no index column, we create a simple range index.
+    predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_Yield'], index=pd.RangeIndex(start=1, stop=len(output)+1))
     
     print("✅ Rice prediction complete.")
     return predictions_df
+
