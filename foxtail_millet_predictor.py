@@ -2,39 +2,11 @@ import os
 import torch
 import pandas as pd
 import joblib
-import gdown
 import torch.nn as nn
 import torch.nn.functional as F
 
 # ===================================================================
-# 1. FILE DOWNLOADER
-# ===================================================================
-
-# Dictionary of files to download {destination_path: google_drive_id}
-FILES_TO_DOWNLOAD = {
-    "models/foxtailmillet_model.pth": "11tybRa9nP8bvecjdqM7nZRKWKafxeZnL",
-    "scalers/foxtailmillet_geno_scaler.pkl": "1HFJP_t0O74Hkvb82dvFAU7J7ymh1U5I4",
-    "scalers/foxtailmillet_env_scaler.pkl": "17W9u764a1-UNzp8FNkumwhhi8TNTx--a",
-}
-
-def download_files_if_needed():
-    """Checks for the existence of model files and downloads them if missing."""
-    print("--- Checking for Foxtail Millet model files... ---")
-    for filepath, file_id in FILES_TO_DOWNLOAD.items():
-        # Ensure the directory for the file exists
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        
-        if not os.path.exists(filepath):
-            print(f"Downloading {filepath}...")
-            url = f'https://drive.google.com/uc?id={file_id}'
-            gdown.download(url, filepath, quiet=False)
-        else:
-            print(f"File '{filepath}' already exists. Skipping download.")
-    print("--- File check complete. ---")
-
-
-# ===================================================================
-# 2. MODEL DEFINITION (Updated to match the new training script)
+# 1. MODEL DEFINITION (Matches the final training script)
 # ===================================================================
 class Cropformer(nn.Module):
     """
@@ -67,18 +39,16 @@ class Cropformer(nn.Module):
         return self.regressor(combined)
 
 # ===================================================================
-# 3. PREDICTION FUNCTION
+# 2. PREDICTION FUNCTION
 # ===================================================================
 def predict_foxtail_millet_yield(df_input):
     """
-    Runs the full prediction pipeline for foxtail millet.
+    Runs the full prediction pipeline for foxtail millet, assuming all
+    model and scaler files are available locally.
     """
     print("--- Starting Foxtail Millet GxE Prediction ---")
     
-    # --- Step 1: Ensure model files are available ---
-    download_files_if_needed()
-
-    # --- Step 2: Load scalers and model ---
+    # --- Step 1: Load scalers and model from local files ---
     try:
         geno_scaler = joblib.load('scalers/foxtailmillet_geno_scaler.pkl')
         env_scaler = joblib.load('scalers/foxtailmillet_env_scaler.pkl')
@@ -86,11 +56,11 @@ def predict_foxtail_millet_yield(df_input):
 
         DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
-        # Determine model input dimensions from the scalers
+        # Determine model input dimensions from the loaded scalers
         geno_input_dim = geno_scaler.n_features_in_
         env_input_dim = env_scaler.n_features_in_
 
-        # Instantiate the new, corrected model class
+        # Instantiate the correct model class
         model = Cropformer(
             geno_input_dim=geno_input_dim,
             env_input_dim=env_input_dim,
@@ -102,11 +72,11 @@ def predict_foxtail_millet_yield(df_input):
         print("✅ Foxtail Millet model loaded successfully.")
 
     except FileNotFoundError as e:
-        raise RuntimeError(f"A required model file was not found: {e}. Please check the download paths.")
+        raise RuntimeError(f"A required model file was not found: {e}. Ensure files are tracked with Git LFS.")
     except Exception as e:
         raise RuntimeError(f"An error occurred while loading the model or scalers: {e}")
 
-    # --- Step 3: Preprocess input data ---
+    # --- Step 2: Preprocess input data ---
     try:
         # First, try to find columns using the standard prefixes
         marker_cols = [col for col in df_input.columns if 'Marker_' in col]
@@ -115,7 +85,7 @@ def predict_foxtail_millet_yield(df_input):
         # **FALLBACK LOGIC**: If prefixes are not found, make an assumption
         if not marker_cols or not env_cols:
             print("⚠️ Warning: 'Marker_' or 'env_' prefixes not found in CSV.")
-            print(f"    Assuming the last {env_input_dim} columns are environmental and the rest are genetic.")
+            print(f"   Assuming the last {env_input_dim} columns are environmental and the rest are genetic.")
             
             env_cols = df_input.columns[-env_input_dim:].tolist()
             marker_cols = df_input.columns[:-env_input_dim].tolist()
@@ -143,9 +113,9 @@ def predict_foxtail_millet_yield(df_input):
         X_env_tensor = torch.from_numpy(X_env_scaled).float().to(DEVICE)
 
     except Exception as e:
-         raise ValueError(f"An error occurred during data preprocessing: {e}")
-   
-    # --- Step 4: Make Predictions ---
+        raise ValueError(f"An error occurred during data preprocessing: {e}")
+    
+    # --- Step 3: Make Predictions ---
     with torch.no_grad():
         output = model(X_geno_tensor, X_env_tensor)
     
