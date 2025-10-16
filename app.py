@@ -8,6 +8,11 @@ from werkzeug.utils import secure_filename
 import torch.nn as nn
 from lightning.pytorch import LightningModule
 
+# --- Import Custom Predictor Modules ---
+from tomato_predictor import predict_tomato_yield
+from foxtail_millet_predictor import predict_foxtail_millet_yield
+from rice_predictor import predict_rice_yield # <-- IMPORT RICE FUNCTION
+
 # ===================================================================
 # 1. SETUP AND CONFIGURATION
 # ===================================================================
@@ -34,7 +39,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'--- Using device: {DEVICE} ---')
 
 # ===================================================================
-# 2. MODEL DEFINITIONS (Copy-pasted from your training scripts)
+# 2. MODEL DEFINITIONS (for Maize and Wheat)
 # ===================================================================
 
 # --- Model 1: Genetics-Only Cropformer (for Maize) ---
@@ -142,6 +147,8 @@ except Exception as e:
     wheat_model = None
     print(f"⚠️ Could not load Wheat model. Error: {e}")
 
+# Note: Tomato, Foxtail Millet, and Rice models are loaded on-demand.
+
 # ===================================================================
 # 4. FLASK ROUTES
 # ===================================================================
@@ -172,7 +179,12 @@ def predict():
         file.save(filepath)
 
         try:
-            df = pd.read_csv(filepath, index_col=0)
+            # MODIFICATION: Special handling for rice CSV which has no header or index
+            if crop_type == 'rice':
+                df = pd.read_csv(filepath, header=None, index_col=False)
+            else:
+                # Default for other crops which have an index column
+                df = pd.read_csv(filepath, index_col=0)
         except Exception as e:
             return render_template('index.html', error=f"Error reading CSV: {e}")
 
@@ -222,6 +234,48 @@ def predict():
                 }
             except Exception as e:
                 return render_template('index.html', error=f"Wheat prediction failed: {e}")
+
+        elif crop_type == 'tomato':
+            try:
+                # Delegate all tomato prediction logic to the specialized module
+                predictions_df = predict_tomato_yield(df)
+
+                model_info = {
+                    "crop": "Tomato",
+                    "trait": "Yield (predicted as Fruit Weight in grams)",
+                    "correlation": 0.4883
+                }
+
+            except Exception as e:
+                return render_template('index.html', error=f"Tomato prediction failed: {e}")
+
+        elif crop_type == 'foxtail_millet':
+            try:
+                # Delegate all foxtail millet logic to its specialized module
+                predictions_df = predict_foxtail_millet_yield(df)
+
+                model_info = {
+                    "crop": "Foxtail Millet",
+                    "trait": "Grain Yield",
+                    "correlation": "0.8183"
+                }
+
+            except Exception as e:
+                return render_template('index.html', error=f"Foxtail Millet prediction failed: {e}")
+        
+        elif crop_type == 'rice':
+            try:
+                # Delegate all rice prediction logic to its specialized module
+                predictions_df = predict_rice_yield(df)
+
+                model_info = {
+                    "crop": "Rice",
+                    "trait": "Grain Yield",
+                    "correlation": 0.4168
+                }
+
+            except Exception as e:
+                return render_template('index.html', error=f"Rice prediction failed: {e}")
         
         # --- After a prediction is made, generate interpretations and summaries ---
         if predictions_df is not None and not predictions_df.empty:
@@ -230,7 +284,6 @@ def predict():
 
             if crop_type == 'maize':
                 trait_interpretation = "Lower Days to Tasselling (DTT) indicates earlier flowering and potentially shorter crop duration."
-                # Find the best sample (lowest DTT)
                 best_sample_row = predictions_df.loc[predictions_df['Predicted_DTT'].idxmin()]
                 best_sample_id = best_sample_row.name
                 best_value = best_sample_row['Predicted_DTT']
@@ -238,11 +291,33 @@ def predict():
 
             elif crop_type == 'wheat':
                 trait_interpretation = "Higher Thousand Kernel Weight (TKW) generally correlates with better grain filling and yield."
-                # Find the best sample (highest TKW)
                 best_sample_row = predictions_df.loc[predictions_df['Predicted_TKW'].idxmax()]
                 best_sample_id = best_sample_row.name
                 best_value = best_sample_row['Predicted_TKW']
                 result_summary = f"The standout sample is '{best_sample_id}' with the highest Thousand Kernel Weight ({best_value:.2f} grams). This indicates it has the best potential for high yield among the tested varieties."
+
+            elif crop_type == 'tomato':
+                trait_interpretation = "Higher Fruit Weight (FW) is a key component of and generally leads to increased overall yield."
+                best_sample_row = predictions_df.loc[predictions_df['Predicted_FW'].idxmax()]
+                best_sample_id = best_sample_row.name
+                best_value = best_sample_row['Predicted_FW']
+                result_summary = f"The standout sample is '{best_sample_id}' with the highest predicted Fruit Weight ({best_value:.2f} grams). This variety shows the greatest potential for producing large fruits and, consequently, a high yield."
+
+            elif crop_type == 'foxtail_millet':
+                trait_interpretation = "Higher Grain Yield indicates better overall productivity and performance for the given environmental conditions."
+                # Find the best sample (highest Yield)
+                best_sample_row = predictions_df.loc[predictions_df['Predicted_Yield'].idxmax()]
+                best_sample_id = best_sample_row.name
+                best_value = best_sample_row['Predicted_Yield']
+                result_summary = f"The standout sample is '{best_sample_id}' with the highest predicted Grain Yield ({best_value:.2f}). This variety shows the most promise for high productivity in the specified environment."
+
+            elif crop_type == 'rice':
+                trait_interpretation = "Higher Grain Yield is desirable as it indicates better overall productivity for the rice variety."
+                # Find the best sample (highest Yield)
+                best_sample_row = predictions_df.loc[predictions_df['Predicted_Yield'].idxmax()]
+                best_sample_id = best_sample_row.name
+                best_value = best_sample_row['Predicted_Yield']
+                result_summary = f"The standout sample is row '{best_sample_id}' with the highest predicted Grain Yield ({best_value:.2f}). This variety shows the greatest potential for high productivity."
 
             # --- Render results for ANY successful prediction ---
             return render_template(
