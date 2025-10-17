@@ -11,10 +11,10 @@ from lightning.pytorch import LightningModule
 # --- Import Custom Predictor Modules ---
 from tomato_predictor import predict_tomato_yield
 from foxtail_millet_predictor import predict_foxtail_millet_yield
-from rice_predictor import predict_rice_yield # <-- IMPORT RICE FUNCTION
+from rice_predictor import predict_rice_yield
 
 # ===================================================================
-# 1. SETUP AND CONFIGURATION
+# 1. SETUP AND CONFIGURATION (No changes here)
 # ===================================================================
 
 # --- Flask App Configuration ---
@@ -22,24 +22,21 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'csv'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Ensure the upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# --- Model Hyperparameters (Must match your trained models) ---
-MAIZE_INPUT_SIZE_GENO = 10003   # adjust to match the model’s saved state
-WHEAT_INPUT_SIZE_GENO = 10000   # whatever it was trained with
-WHEAT_INPUT_SIZE_ENV = 6        # since wheat uses 6 environmental variables
+# --- Model Hyperparameters ---
+MAIZE_INPUT_SIZE_GENO = 10003
+WHEAT_INPUT_SIZE_GENO = 10000
+WHEAT_INPUT_SIZE_ENV = 6
 HIDDEN_SIZE = 64
 BEST_PARAMS = {'num_attention_heads': 8, 'attention_probs_dropout_prob': 0.5}
-
 
 # --- Device Configuration ---
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f'--- Using device: {DEVICE} ---')
 
 # ===================================================================
-# 2. MODEL DEFINITIONS (for Maize and Wheat)
+# 2. MODEL DEFINITIONS (No changes here)
 # ===================================================================
 
 # --- Model 1: Genetics-Only Cropformer (for Maize) ---
@@ -113,10 +110,9 @@ class CropformerWithEnv(nn.Module):
         return output
 
 # ===================================================================
-# 3. LOAD MODELS AND SCALERS (Done once when the app starts)
+# 3. LOAD MODELS AND SCALERS (No changes here)
 # ===================================================================
 print("--- Loading models and scalers into memory... ---")
-# --- Load Maize Model ---
 try:
     maize_model = CropformerGeneticsOnly(
         **BEST_PARAMS, input_size=MAIZE_INPUT_SIZE_GENO, hidden_size=HIDDEN_SIZE
@@ -129,8 +125,6 @@ except Exception as e:
     maize_model = None
     print(f"⚠️ Could not load Maize model. Error: {e}")
 
-
-# --- Load Wheat Model ---
 try:
     wheat_model = CropformerWithEnv(
         geno_input_dim=WHEAT_INPUT_SIZE_GENO,
@@ -147,19 +141,15 @@ except Exception as e:
     wheat_model = None
     print(f"⚠️ Could not load Wheat model. Error: {e}")
 
-# Note: Tomato, Foxtail Millet, and Rice models are loaded on-demand.
-
 # ===================================================================
-# 4. FLASK ROUTES
+# 4. FLASK ROUTES (MODIFIED FOR MEMORY OPTIMIZATION)
 # ===================================================================
 
 def allowed_file(filename):
-    """Checks if the uploaded file has a .csv extension"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/', methods=['GET'])
 def index():
-    """Renders the main upload page."""
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
@@ -178,102 +168,88 @@ def predict():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        try:
-            # MODIFICATION: Special handling for rice CSV which has no header or index
-            if crop_type == 'rice':
-                df = pd.read_csv(filepath, header=None, index_col=False)
-            else:
-                # Default for other crops which have an index column
-                df = pd.read_csv(filepath, index_col=0)
-        except Exception as e:
-            return render_template('index.html', error=f"Error reading CSV: {e}")
-
         predictions_df = None
         model_info = {}
+        chunk_list = [] # List to hold prediction results from each chunk
         
         # --- Call the correct model ---
         if crop_type == 'maize' and maize_model:
             try:
-                X_scaled = maize_scaler.transform(df.values)
-                X_tensor = torch.from_numpy(X_scaled).to(torch.float32).to(DEVICE)
-
-                with torch.no_grad():
-                    output = maize_model(X_tensor)
+                # OPTIMIZATION: Process the file in chunks to save memory
+                reader = pd.read_csv(filepath, index_col=0, chunksize=500)
+                for chunk in reader:
+                    X_scaled = maize_scaler.transform(chunk.values)
+                    X_tensor = torch.from_numpy(X_scaled).to(torch.float32).to(DEVICE)
+                    with torch.no_grad():
+                        output = maize_model(X_tensor)
+                    chunk_predictions = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_DTT'], index=chunk.index)
+                    chunk_list.append(chunk_predictions)
                 
-                predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_DTT'], index=df.index)
-
-                model_info = {
-                    "crop": "Maize",
-                    "trait": "Days to Tasseling",
-                    "correlation": 0.9441
-                }
-
+                predictions_df = pd.concat(chunk_list)
+                model_info = {"crop": "Maize", "trait": "Days to Tasseling", "correlation": 0.9441}
             except Exception as e:
                 return render_template('index.html', error=f"Maize prediction failed: {e}")
 
         elif crop_type == 'wheat' and wheat_model:
             try:
-                marker_cols = [col for col in df.columns if 'Marker_' in col]
-                env_cols = [col for col in df.columns if 'env_' in col]
+                # OPTIMIZATION: Process the file in chunks
+                # First, get column names to avoid recalculating in loop
+                df_cols = pd.read_csv(filepath, index_col=0, nrows=0).columns
+                marker_cols = [col for col in df_cols if 'Marker_' in col]
+                env_cols = [col for col in df_cols if 'env_' in col]
 
-                X_geno_scaled = wheat_geno_scaler.transform(df[marker_cols])
-                X_env_scaled = wheat_env_scaler.transform(df[env_cols])
-                
-                X_geno_tensor = torch.from_numpy(X_geno_scaled).to(torch.float32).to(DEVICE)
-                X_env_tensor = torch.from_numpy(X_env_scaled).to(torch.float32).to(DEVICE)
+                reader = pd.read_csv(filepath, index_col=0, chunksize=500)
+                for chunk in reader:
+                    X_geno_scaled = wheat_geno_scaler.transform(chunk[marker_cols])
+                    X_env_scaled = wheat_env_scaler.transform(chunk[env_cols])
+                    X_geno_tensor = torch.from_numpy(X_geno_scaled).to(torch.float32).to(DEVICE)
+                    X_env_tensor = torch.from_numpy(X_env_scaled).to(torch.float32).to(DEVICE)
+                    with torch.no_grad():
+                        output = wheat_model(X_geno_tensor, X_env_tensor)
+                    chunk_predictions = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_TKW'], index=chunk.index)
+                    chunk_list.append(chunk_predictions)
 
-                with torch.no_grad():
-                    output = wheat_model(X_geno_tensor, X_env_tensor)
-
-                predictions_df = pd.DataFrame(output.cpu().numpy(), columns=['Predicted_TKW'], index=df.index)
-
-                model_info = {
-                    "crop": "Wheat",
-                    "trait": "Thousand Kernel Weight",
-                    "correlation": 0.6617
-                }
+                predictions_df = pd.concat(chunk_list)
+                model_info = {"crop": "Wheat", "trait": "Thousand Kernel Weight", "correlation": 0.6617}
             except Exception as e:
                 return render_template('index.html', error=f"Wheat prediction failed: {e}")
 
         elif crop_type == 'tomato':
             try:
-                # Delegate all tomato prediction logic to the specialized module
-                predictions_df = predict_tomato_yield(df)
-
-                model_info = {
-                    "crop": "Tomato",
-                    "trait": "Yield (predicted as Fruit Weight in grams)",
-                    "correlation": 0.4883
-                }
-
+                # OPTIMIZATION: Process the file in chunks and delegate to the specialized module
+                reader = pd.read_csv(filepath, index_col=0, chunksize=500)
+                for chunk in reader:
+                    chunk_predictions = predict_tomato_yield(chunk)
+                    chunk_list.append(chunk_predictions)
+                
+                predictions_df = pd.concat(chunk_list)
+                model_info = {"crop": "Tomato", "trait": "Yield (predicted as Fruit Weight in grams)", "correlation": 0.4883}
             except Exception as e:
                 return render_template('index.html', error=f"Tomato prediction failed: {e}")
 
         elif crop_type == 'foxtail_millet':
             try:
-                # Delegate all foxtail millet logic to its specialized module
-                predictions_df = predict_foxtail_millet_yield(df)
+                # OPTIMIZATION: Process the file in chunks
+                reader = pd.read_csv(filepath, index_col=0, chunksize=500)
+                for chunk in reader:
+                    chunk_predictions = predict_foxtail_millet_yield(chunk)
+                    chunk_list.append(chunk_predictions)
 
-                model_info = {
-                    "crop": "Foxtail Millet",
-                    "trait": "Grain Yield",
-                    "correlation": "0.8183"
-                }
-
+                predictions_df = pd.concat(chunk_list)
+                model_info = {"crop": "Foxtail Millet", "trait": "Total shoot leaf length", "correlation": "0.8183"}
             except Exception as e:
                 return render_template('index.html', error=f"Foxtail Millet prediction failed: {e}")
         
         elif crop_type == 'rice':
             try:
-                # Delegate all rice prediction logic to its specialized module
-                predictions_df = predict_rice_yield(df)
+                # OPTIMIZATION: Process the file in chunks, respecting the no-header format
+                reader = pd.read_csv(filepath, header=None, index_col=False, chunksize=500)
+                for chunk in reader:
+                    chunk_predictions = predict_rice_yield(chunk)
+                    chunk_list.append(chunk_predictions)
 
-                model_info = {
-                    "crop": "Rice",
-                    "trait": "Grain Yield",
-                    "correlation": 0.4168
-                }
-
+                predictions_df = pd.concat(chunk_list)
+                model_info = {"crop": "Rice", "trait": "Grain Yield", "correlation": 0.4168}
             except Exception as e:
                 return render_template('index.html', error=f"Rice prediction failed: {e}")
         
@@ -305,7 +281,6 @@ def predict():
 
             elif crop_type == 'foxtail_millet':
                 trait_interpretation = "Higher Grain Yield indicates better overall productivity and performance for the given environmental conditions."
-                # Find the best sample (highest Yield)
                 best_sample_row = predictions_df.loc[predictions_df['Predicted_Yield'].idxmax()]
                 best_sample_id = best_sample_row.name
                 best_value = best_sample_row['Predicted_Yield']
@@ -313,7 +288,6 @@ def predict():
 
             elif crop_type == 'rice':
                 trait_interpretation = "Higher Grain Yield is desirable as it indicates better overall productivity for the rice variety."
-                # Find the best sample (highest Yield)
                 best_sample_row = predictions_df.loc[predictions_df['Predicted_Yield'].idxmax()]
                 best_sample_id = best_sample_row.name
                 best_value = best_sample_row['Predicted_Yield']
@@ -328,13 +302,10 @@ def predict():
                 result_summary=result_summary
             )
         else:
-            # Handle cases where prediction didn't run or returned empty
             return render_template('index.html',
-                                   error=f"Model for '{crop_type}' not available or an error occurred during prediction.")
+                                 error=f"Model for '{crop_type}' not available or an error occurred during prediction.")
             
     return redirect(url_for('index'))
 
-
 if __name__ == '__main__':
     app.run(debug=True)
-
