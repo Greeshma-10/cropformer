@@ -135,4 +135,7 @@ You can upload your genomic CSV file, choose the crop, and view the predicted re
 ### 🧠 Citation
 If you use this application or concept in your work, please cite the original paper:
 
-Cropformer: An Interpretable Deep Learning Framework for Crop Genomic Prediction
+Wang, H., Yan, S., Wang, W., et al. (2025). Cropformer: An interpretable deep learning framework for crop genomic prediction. Plant Communications, 6, 101223. 
+
+
+DOI: https://doi.org/10.1016/j.xplc.2024.101223
