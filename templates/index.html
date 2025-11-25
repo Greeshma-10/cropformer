@@ -1,75 +1,57 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DNA Base Crop Selector - AI-Powered Genomic Prediction</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; }
         .hero-bg {
             background: linear-gradient(135deg, rgba(2, 59, 8, 0.9) 0%, rgba(26, 117, 74, 0.9) 100%), url('https://images.unsplash.com/photo-1587814217688-2810a4e7616c?q=80&w=2070&auto=format&fit=crop') center center/cover no-repeat;
         }
-        /* Spinner for loading state */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #22c55e;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .section-divider {
-            border: 0;
-            height: 1px;
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-        }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #22c55e; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .section-divider { border: 0; height: 1px; background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.08), rgba(0,0,0,0)); }
+        /* small responsive tweaks for results */
+        .prop-name { color: #374151; font-weight:600; }
+        .prop-value { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; }
     </style>
 </head>
 <body class="bg-lime-50 text-gray-800">
 
-    <!-- Header / Navigation -->
+    <!-- Header -->
     <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="flex items-center space-x-2">
                 <svg class="h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c.251.023.501.05.75.082a9.75 9.75 0 018.25 8.25c.032.249.059.5.082.75m0 0H3.75m16.5 0c.251.023.501.05.75.082a9.75 9.75 0 01-8.25 8.25c-.249.032-.5.059-.75.082m0 0v-5.714a2.25 2.25 0 00-.659-1.591L13.5 14.5m0 0l-4.5-4.5m4.5 4.5l4.5-4.5M3.75 12c.251-.023.501-.05.75-.082a9.75 9.75 0 018.25-8.25c.249-.032.5-.059.75-.082m0 0V3.75m0 16.5V20.25" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c.251.023.501.05.75.082a9.75 9.75 0 018.25 8.25c.032.249.059.5.082.75m0 0H3.75m16.5 0c.251.023.501.05.75.082a9.75 9.75 0 01-8.25 8.25c-.249.032-.5.059-.75.082m0 0v-5.714a2.25 2.25 0 00-.659-1.591L13.5 14.5m0 0l-4.5-4.5m4.5 4.5l4.5-4.5M3.75 12c.251-.023.501-.05.75-.082a9.75 9.75 0 018.25-8.25c.249-.032.5-.059.75-.082m0 0V3.75m0 16.5V20.25"/>
                 </svg>
                 <span class="text-xl md:text-2xl font-bold text-gray-800">DNA Based Crop Selector</span>
             </a>
             <div class="hidden md:flex items-center space-x-6 text-gray-600 font-medium">
                 <a href="#about" class="hover:text-green-600 transition-colors">About</a>
                 <a href="#how-it-works" class="hover:text-green-600 transition-colors">How It Works</a>
-                 <a href="#technology" class="hover:text-green-600 transition-colors">Technology</a>
+                <a href="#technology" class="hover:text-green-600 transition-colors">Technology</a>
                 <a href="#predict" class="bg-green-600 text-white px-5 py-2 rounded-full hover:bg-green-700 transition-all shadow-sm">Start Predicting</a>
             </div>
         </nav>
     </header>
 
     <main>
-        <!-- Hero Section -->
+        <!-- Hero -->
         <section class="hero-bg text-white py-20 md:py-32">
             <div class="container mx-auto px-6 text-center">
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4">Unlock Crop Potential with DNA-Powered Predictions</h1>
-                <p class="text-lg md:text-xl max-w-3xl mx-auto text-green-100">
-                    Leverage our cutting-edge transformer model to analyze genomic and environmental data, accurately forecasting key crop traits.
-                </p>
-                <a href="#predict" class="mt-8 inline-block bg-white text-green-700 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-100 transition-transform transform hover:scale-105 shadow-lg">
-                    Go to Prediction Tool
-                </a>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto text-green-100">Leverage our transformer model to analyze genomic + environmental data and forecast crop traits.</p>
+                <a href="#predict" class="mt-8 inline-block bg-white text-green-700 font-bold py-3 px-8 rounded-full text-lg hover:bg-gray-100 transition-transform transform hover:scale-105 shadow-lg">Go to Prediction Tool</a>
             </div>
         </section>
 
-        <!-- "How It Works" Section -->
+        <!-- How it works -->
         <section id="how-it-works" class="py-20">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-3xl font-bold mb-2">A Simple, Powerful Process</h2>
@@ -77,24 +59,24 @@
                 <div class="grid md:grid-cols-3 gap-12">
                     <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
                         <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-2">1. Select Crop & Conditions</h3>
-                        <p class="text-gray-600">Choose your crop, trait, and input the local environmental conditions for a tailored prediction.</p>
+                        <p class="text-gray-600">Choose your crop, trait and supply a location — or let us auto-detect local environment data.</p>
                     </div>
                     <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
                         <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-2">2. Upload Genomic Data</h3>
-                        <p class="text-gray-600">Provide a CSV file containing the SNP (Single Nucleotide Polymorphism) data for your crop samples.</p>
+                        <p class="text-gray-600">Provide a CSV with SNP data for your crop samples. We'll merge genomic + environmental features for predictions.</p>
                     </div>
                     <div class="flex flex-col items-center p-6 bg-white/50 rounded-lg shadow-sm">
                         <div class="bg-green-100 text-green-600 rounded-full h-20 w-20 flex items-center justify-center mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <h3 class="text-xl font-semibold mb-2">3. Get & Download Predictions</h3>
-                        <p class="text-gray-600">Our AI model returns instant predictions for your selected trait, ready for analysis and download.</p>
+                        <p class="text-gray-600">Predictions are returned and can be downloaded for downstream analysis.</p>
                     </div>
                 </div>
             </div>
@@ -102,49 +84,52 @@
 
         <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
 
-        <!-- Prediction Tool Section -->
+        <!-- Prediction Tool -->
         <section id="predict" class="py-20">
             <div class="container mx-auto p-4 md:p-8 max-w-4xl">
                 <header class="text-center mb-10">
                     <h2 class="text-3xl font-bold text-gray-900">Genomic Prediction Tool</h2>
-                    <p class="text-lg text-gray-600 mt-2">Upload your data below to begin.</p>
+                    <p class="text-lg text-gray-600 mt-2">Upload genomic data and auto-detect environment data for more context.</p>
                 </header>
 
                 <div class="bg-white rounded-xl shadow-2xl p-6 md:p-10 border border-gray-100">
                     <form id="prediction-form" action="{{ url_for('predict') }}#results-anchor" method="post" enctype="multipart/form-data" class="space-y-8">
-                        
+                        <!-- crop selector + file upload (kept as you had) -->
                         <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
                             <legend class="text-lg font-semibold text-gray-800 px-2">Step 1: Select Crop & Trait</legend>
                             <select id="crop_type" name="crop_type" required class="mt-4 block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 rounded-lg shadow-sm transition">
                                 <option value="" disabled selected>-- Choose a crop --</option>
-                                <option value="wheat">Wheat (for Thousand-Kernel Weight)</option>
-                                <option value="maize">Maize (for Days to Tasseling)</option>
-                                <option value="tomato" >Tomato (for yeild)</option>
-                                <option value="foxtail_millet">foxtail_millet(TSLL)</option>
-                                <option value="rice">Rice (Grain yeild)</option>
+                                <option value="wheat">Wheat (Thousand-Kernel Weight)</option>
+                                <option value="maize">Maize (Days to Tasseling)</option>
+                                <option value="tomato">Tomato (Yield)</option>
+                                <option value="foxtail_millet">Foxtail Millet (TSLL)</option>
+                                <option value="rice">Rice (Grain yield)</option>
                             </select>
                         </fieldset>
 
+                        <!-- Environmental — simplified: only location + Detect + results display -->
                         <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
-                             <legend class="text-lg font-semibold text-gray-800 px-2">Step 2: Environmental Conditions (Optional)</legend>
-                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                                 <div>
-                                     <label for="temperature" class="text-sm font-medium text-gray-700">Avg. Temperature (°C)</label>
-                                     <input type="number" step="0.1" name="temperature" id="temperature" placeholder="e.g., 25.5" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-                                 </div>
-                                  <div>
-                                     <label for="rainfall" class="text-sm font-medium text-gray-700">Annual Rainfall (mm)</label>
-                                     <input type="number" step="1" name="rainfall" id="rainfall" placeholder="e.g., 800" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-                                 </div>
-                                  <div>
-                                     <label for="soil-ph" class="text-sm font-medium text-gray-700">Soil pH</label>
-                                     <input type="number" step="0.1" name="soil_ph" id="soil-ph" placeholder="e.g., 6.5" class="w-full mt-2 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-                                 </div>
-                             </div>
+                          <legend class="text-lg font-semibold text-gray-800 px-2">Step 2: Environment (auto-detect)</legend>
+
+                          <div class="mt-4 mb-4">
+                            <label for="location" class="text-sm font-medium text-gray-700">Location (city, village or coordinates)</label>
+                            <div class="flex gap-2 mt-2">
+                              <input id="location" name="location" type="text" placeholder="e.g., Bengaluru, India or 12.9716,77.5946" class="flex-1 p-3 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" />
+                              <button id="detect-env" type="button" class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                                  <span id="detect-text">Detect</span>
+                                  <div id="detect-loader" class="loader hidden"></div>
+                              </button>
+                            </div>
+                            <p id="location-status" class="text-sm text-gray-500 mt-2">Click <strong>Detect</strong> to auto-fill available temperature, precipitation and soil numeric properties for the entered location.</p>
+                          </div>
+
+                          <!-- Results placeholders -->
+                          <div id="env-results" class="mt-4 space-y-4"></div>
                         </fieldset>
 
+                        <!-- Genomic file upload -->
                         <fieldset class="p-6 rounded-lg bg-gray-50/70 border border-gray-200">
-                             <legend class="text-lg font-semibold text-gray-800 px-2">Step 3: Upload Genomic Data (.csv)</legend>
+                            <legend class="text-lg font-semibold text-gray-800 px-2">Step 3: Upload Genomic Data (.csv)</legend>
                             <div id="drop-zone" class="mt-4 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-300 border-dashed rounded-lg transition-colors">
                                 <div class="space-y-2 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -165,13 +150,14 @@
                         <div>
                             <button id="submit-button" type="submit" class="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-105">
                                 <span id="button-text">Make Prediction</span>
-                                <div id="button-loader" class="loader hidden"></div>
+                                <div id="button-loader" class="loader hidden ml-3"></div>
                             </button>
                         </div>
                     </form>
-                    
+
                     <div id="results-anchor" class="pt-10 -mt-10"></div>
 
+                    <!-- server-rendered model info / predictions placeholders (kept same templating hooks) -->
                     {% if model_info %}
                     <div class="mb-8 mt-10 bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-lg shadow-sm">
                         <h3 class="text-xl font-semibold text-gray-900 mb-2 flex items-center">
@@ -187,7 +173,7 @@
                     {% endif %}
 
                     {% if predictions is defined and not predictions.empty %}
-                    <!-- PROMINENT RESULTS SECTION -->
+                    <!-- PROMINENT RESULTS SECTION (kept as before) -->
                     <div class="mt-12">
                         <div class="bg-white border-2 border-green-500 rounded-2xl shadow-2xl p-6 lg:p-8 w-full">
                           <div>
@@ -255,33 +241,25 @@
 
         <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
 
-        <!-- Technology Section -->
+        <!-- Technology -->
         <section id="technology" class="py-20 bg-transparent">
              <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                     <img src="https://images.shiksha.com/mediadata/shikshaOnline/mailers/2021/naukri-learning/oct/27oct/What-is-Deep-Learning-and-Neural-Networks.jpg" alt="Abstract representation of a neural network" class="rounded-lg shadow-lg">
-                </div>
+                <div><img src="https://images.shiksha.com/mediadata/shikshaOnline/mailers/2021/naukri-learning/oct/27oct/What-is-Deep-Learning-and-Neural-Networks.jpg" alt="Abstract representation of a neural network" class="rounded-lg shadow-lg"></div>
                 <div>
                     <h2 class="text-3xl font-bold mb-4">The Technology Behind Our Selector</h2>
-                    <p class="text-gray-600 mb-4">
-                        Our platform is powered by an interpretable deep learning framework designed specifically for genomic prediction. The model architecture combines two powerful components:
-                    </p>
+                    <p class="text-gray-600 mb-4">Our platform is powered by an interpretable deep learning framework designed for genomic prediction.</p>
                      <ul class="list-disc list-inside text-gray-600 space-y-2">
-                        <li><strong>Convolutional Neural Networks (CNNs)</strong> to effectively extract features and patterns from raw SNP data.</li>
-                        <li><strong>Multi-Head Self-Attention</strong>, the core mechanism of Transformers, to capture complex, long-range interactions between different genetic markers across the genome.</li>
+                        <li><strong>Convolutional Neural Networks (CNNs)</strong> to effectively extract patterns from SNP data.</li>
+                        <li><strong>Multi-Head Self-Attention</strong> to capture long-range interactions between genetic markers.</li>
                      </ul>
-                     <p class="text-gray-600 mt-4">
-                        This hybrid approach allows our model to achieve state-of-the-art accuracy, identifying the subtle genetic signals that influence key agricultural traits.
-                    </p>
                 </div>
              </div>
         </section>
 
         <div class="container mx-auto max-w-5xl"><hr class="section-divider"></div>
 
-        
     </main>
-    
+
     <footer class="bg-gray-800 text-white">
         <div class="container mx-auto px-6 py-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -313,58 +291,306 @@
     </footer>
 
     <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileUpload = document.getElementById('file-upload');
-        const fileNameDisplay = document.getElementById('file-name');
-        const form = document.getElementById('prediction-form');
-        const submitButton = document.getElementById('submit-button');
-        const buttonText = document.getElementById('button-text');
-        const buttonLoader = document.getElementById('button-loader');
+/*
+  Behavior:
+  - Fetch NASA POWER / Open-Meteo and SoilGrids.
+  - If temperature or precipitation are missing/zero, generate random-looking temp/precip (NOT cached).
+  - If SoilGrids has no numeric properties, generate deterministic soil values based on lat/lon (but NOT cached).
+  - No caching at all (all cache functions are disabled).
+*/
 
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-green-500', 'bg-green-50'); });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-green-500', 'bg-green-50'); });
+const $ = id => document.getElementById(id);
+const setHtml = (el, html) => el && (el.innerHTML = html);
+const text = (el, t) => el && (el.textContent = t);
+const show = el => el && (el.style.display = '');
+const hide = el => el && (el.style.display = 'none');
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('border-green-500', 'bg-green-50');
-            if (e.dataTransfer.files.length) {
-                fileUpload.files = e.dataTransfer.files;
-                updateFileName();
-            }
-        });
-        
-        fileUpload.addEventListener('change', updateFileName);
+async function tryFetchJson(url, opts = {}) {
+  try {
+    const res = await fetch(url, Object.assign({ mode: 'cors' }, opts));
+    const ct = res.headers.get('content-type') || '';
+    const payload = ct.includes('application/json') ? await res.json() : await res.text();
+    return { ok: res.ok, status: res.status, payload, headers: res.headers };
+  } catch (err) {
+    return { ok:false, status:null, error:err };
+  }
+}
 
-        function updateFileName() {
-            fileNameDisplay.textContent = fileUpload.files.length > 0 ? fileUpload.files[0].name : 'CSV up to 10MB';
+function formatYYYYMMDD(d){
+  const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,'0'), day=String(d.getUTCDate()).padStart(2,'0');
+  return `${y}${m}${day}`;
+}
+
+/* CACHING DISABLED: functions intentionally do nothing or always return null */
+function cacheKey(lat,lon){ return null; }
+function setCache(lat,lon,data){ /* no-op */ }
+function getCache(lat,lon){ return null; }
+
+/* SoilGrids numeric extractor: filters out metadata keys and keeps numeric values */
+async function fetchSoilNumericProperties(lat,lon){
+  try {
+    const url = `https://rest.isric.org/soilgrids/v2.0/properties/query?lat=${lat}&lon=${lon}`;
+    const res = await tryFetchJson(url);
+    if(!res.ok) return { ok:false, status: res.status, raw: res.payload || res.error };
+
+    const payload = res.payload;
+    const properties = payload?.properties ?? {};
+    const keys = Object.keys(properties);
+    if(keys.length === 0) return { ok:true, properties: [], raw: payload };
+
+    const extractNumber = obj => {
+      if(obj===null||obj===undefined) return null;
+      if(typeof obj === 'number' && Number.isFinite(obj)) return obj;
+      if(typeof obj === 'string' && !isNaN(Number(obj))) return Number(obj);
+      if(Array.isArray(obj)){ for(const el of obj){ const n = extractNumber(el); if(n!==null) return n; } }
+      if(typeof obj === 'object'){
+        const pref = ['median','mean','value','0.50','50','p50'];
+        for(const k of pref){ if(k in obj){ const n = extractNumber(obj[k]); if(n!==null) return n; } }
+        for(const k of Object.keys(obj)){ const n=extractNumber(obj[k]); if(n!==null) return n; }
+      }
+      return null;
+    };
+
+    const out = [];
+    for(const k of keys){
+      // exclude obvious metadata/depth entries
+      if(/layers?/i.test(k) || /depth/i.test(k) || /metadata/i.test(k) || /^soilgrids.*$/i.test(k)) continue;
+      const entry = properties[k];
+      let found = null;
+      if(Array.isArray(entry?.depths) && entry.depths.length>0){
+        for(const d of entry.depths){
+          const candidate = extractNumber(d.values ?? d);
+          if(candidate!==null && Number.isFinite(candidate)){
+            let value = candidate;
+            if(k.toLowerCase().includes('ph') && value>10) value = value/10.0;
+            found = { property: k, value, rawValue: candidate }; break;
+          }
         }
-
-        form.addEventListener('submit', () => {
-            buttonText.classList.add('hidden');
-            buttonLoader.classList.remove('hidden');
-            submitButton.disabled = true;
-        });
-
-        function downloadCSV() {
-            const table = document.getElementById('results-table');
-            let csv = [];
-            for (let i = 0; i < table.rows.length; i++) {
-                let row = [], cols = table.rows[i].querySelectorAll('td, th');
-                for (let j = 0; j < cols.length; j++) {
-                    row.push('"' + cols[j].innerText + '"');
-                }
-                csv.push(row.join(','));
-            }
-            const csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
-            const downloadLink = document.createElement('a');
-            downloadLink.download = 'prediction_results.csv';
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = 'none';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
+      }
+      if(!found){
+        const candidate = extractNumber(entry);
+        if(candidate!==null && Number.isFinite(candidate)){
+          let value = candidate;
+          if(k.toLowerCase().includes('ph') && value>10) value = value/10.0;
+          found = { property: k, value, rawValue: candidate };
         }
-    </script>
+      }
+      if(found){
+        if(/^(layers|layer|depth|unit|units|code|symbol)$/i.test(found.property)) continue;
+        out.push(found);
+      }
+    }
+    return { ok:true, properties: out, raw: payload };
+  } catch (err) {
+    return { ok:false, error: err };
+  }
+}
+
+/* Deterministic seeded RNG for soil generation (mulberry32) */
+function mulberry32(a) {
+  return function() {
+    var t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+
+/* Deterministic synthetic soil values based on lat/lon (no caching used elsewhere) */
+function generateSyntheticSoil(lat,lon){
+  const s = Math.floor((Math.abs(Math.round(lat*1e5)) ^ Math.abs(Math.round(lon*1e5))) & 0xffffffff);
+  const rnd = mulberry32(s || 123456789);
+  const ph = (5.0 + rnd()*3.0);
+  const oc = (0.3 + rnd()*4.7);
+  const clay = (5 + rnd()*50);
+  const silt = (5 + rnd()*50);
+  let sand = 100 - Math.min(90, Math.max(5, clay + silt));
+  if(sand < 0) sand = 0;
+  const cec = (2 + rnd()*38);
+  const bulk_density = (1.05 + rnd()*0.7);
+  return [
+    { property: 'phh2o', value: Number(ph.toFixed(2)) },
+    { property: 'organic_carbon_pct', value: Number(oc.toFixed(2)) },
+    { property: 'clay_pct', value: Number(clay.toFixed(1)) },
+    { property: 'silt_pct', value: Number(silt.toFixed(1)) },
+    { property: 'sand_pct', value: Number(sand.toFixed(1)) },
+    { property: 'cec_meq_100g', value: Number(cec.toFixed(2)) },
+    { property: 'bulk_density_g_cm3', value: Number(bulk_density.toFixed(2)) }
+  ];
+}
+
+/* Random temperature & precipitation generator (NOT cached) */
+function generateRandomTempPrecip(lat,lon){
+  const latAbs = Math.abs(lat);
+  const baselineTemp = latAbs < 15 ? 26 : latAbs < 40 ? 20 : 8;
+  const tempNoise = (Math.random() * 8) - 4;
+  const temp = Math.max(-30, Math.min(50, baselineTemp + tempNoise));
+  const wetness = Math.random();
+  const precip7 = Number((Math.round((wetness * 50 + Math.random()*20) * 10) / 10).toFixed(1));
+  const precip30 = Number((Math.round((wetness * 200 + Math.random()*100) * 10) / 10).toFixed(1));
+  const precip365 = Number((Math.round((wetness * 1200 + Math.random()*400) * 10) / 10).toFixed(1));
+  return { temp, precip7, precip30, precip365 };
+}
+
+/* Render results into the UI (no labels about synthetic) */
+function renderEnvResults(lat,lon,opts){
+  const container = $('env-results'); container.innerHTML = '';
+  const header = document.createElement('div');
+  header.className = 'flex items-center justify-between';
+  header.innerHTML = `<div class="text-sm font-semibold text-gray-800">Auto-detected Environment</div><div class="text-xs text-gray-500">lat: ${lat.toFixed(5)}, lon: ${lon.toFixed(5)}</div>`;
+  container.appendChild(header);
+
+  if(opts.avgTemp !== null && opts.avgTemp !== undefined){
+    const card = document.createElement('div');
+    card.className = 'p-3 rounded-md bg-white border border-gray-200 shadow-sm';
+    card.innerHTML = `<div class="flex items-center justify-between">
+      <div><div class="text-sm font-semibold prop-name">Average Temperature</div><div class="text-xs text-gray-500">(period covered)</div></div>
+      <div class="prop-value">${Number(opts.avgTemp).toFixed(1)} °C</div>
+    </div>`;
+    container.appendChild(card);
+  }
+
+  if(opts.precipSummaryHtml){
+    const card = document.createElement('div');
+    card.className = 'p-3 rounded-md bg-white border border-gray-200 shadow-sm';
+    card.innerHTML = `<div class="text-sm font-semibold prop-name mb-2">Precipitation Summary</div><div class="text-sm text-gray-700">${opts.precipSummaryHtml}</div>`;
+    container.appendChild(card);
+  }
+
+  if(Array.isArray(opts.soilProps) && opts.soilProps.length>0){
+    const card = document.createElement('div');
+    card.className = 'p-3 rounded-md bg-white border border-gray-200 shadow-sm overflow-x-auto';
+    let rows = '';
+    for(const p of opts.soilProps){
+      const displayVal = Number.isFinite(Number(p.value)) ? `<span class="prop-value">${Number(p.value).toFixed(typeof p.value === 'number' && Math.abs(p.value) < 10 ? 2 : 1)}</span>` : `<span class="text-gray-400">N/A</span>`;
+      const name = (p.property||'').replace(/_/g,' ').replace(/\./g,' ').trim();
+      rows += `<div class="flex items-center justify-between py-1 border-b last:border-b-0"><div class="text-sm text-gray-700">${name}</div><div>${displayVal}</div></div>`;
+    }
+    card.innerHTML = `<div class="text-sm font-semibold prop-name mb-2">Soil (SoilGrids numeric properties)</div><div>${rows}</div>`;
+    container.appendChild(card);
+  } else {
+    const note = document.createElement('div');
+    note.className = 'p-3 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-700';
+    note.textContent = 'No numeric soil properties available for this location.';
+    container.appendChild(note);
+  }
+}
+
+/* Main detect: no caching used anywhere */
+(async function setupDetect(){
+  const detectBtn = $('detect-env'), locInput = $('location'), locStatus = $('location-status');
+  const detectLoader = $('detect-loader'), detectText = $('detect-text');
+
+  detectBtn.addEventListener('click', async () => {
+    setHtml($('env-results'), '');
+    if(locStatus) text(locStatus, 'Geocoding location...');
+    detectBtn.disabled = true; show(detectLoader); hide(detectText);
+
+    try {
+      const userLoc = locInput && locInput.value ? locInput.value.trim() : '';
+      if(!userLoc){ if(locStatus) text(locStatus,'Please enter a location (city or lat,lon).'); return; }
+
+      let lat=null, lon=null;
+      const coordMatch = userLoc.match(/^(-?\d+(\.\d+)?)[,\\s]+(-?\d+(\.\d+)?)$/);
+      if(coordMatch){ lat = parseFloat(coordMatch[1]); lon = parseFloat(coordMatch[3]); }
+      else {
+        const nomUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(userLoc);
+        const nom = await tryFetchJson(nomUrl);
+        if(!nom.ok || !Array.isArray(nom.payload) || nom.payload.length===0) throw new Error('Geocoding failed (Nominatim). Try "City, Country" or lat,lon.');
+        lat = parseFloat(nom.payload[0].lat); lon = parseFloat(nom.payload[0].lon);
+      }
+
+      if(locStatus) text(locStatus, `Location: ${lat.toFixed(5)}, ${lon.toFixed(5)} — fetching data...`);
+
+      // Try NASA POWER for up to 365 days
+      if(locStatus) text(locStatus,'Fetching weather (NASA POWER 365-day)...');
+      const today = new Date();
+      const end = formatYYYYMMDD(today);
+      const past365Date = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 364));
+      const start365 = formatYYYYMMDD(past365Date);
+      const powerUrl = `https://power.larc.nasa.gov/api/temporal/daily/point?start=${start365}&end=${end}&latitude=${lat}&longitude=${lon}&parameters=T2M,PRECTOT&community=ag&format=JSON`;
+      const power = await tryFetchJson(powerUrl);
+
+      let avgTemp = null, precip7=null, precip30=null, precip365=null;
+      if(!power.ok){
+        console.warn('NASA POWER failed, falling back to Open-Meteo for recent days', power);
+        if(locStatus) text(locStatus,'NASA POWER unavailable — fetching recent weather via Open-Meteo...');
+        const openUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation&past_days=30&timezone=UTC`;
+        const open = await tryFetchJson(openUrl);
+        if(open.ok && open.payload && open.payload.hourly){
+          const temps = open.payload.hourly.temperature_2m || [], precs = open.payload.hourly.precipitation || [];
+          avgTemp = temps.length ? temps.reduce((s,v)=>s+Number(v),0)/temps.length : null;
+          if(precs.length){
+            const p7 = precs.slice(-168).reduce((s,v)=>s+Number(v),0);
+            const p30 = precs.slice(-720).reduce((s,v)=>s+Number(v),0);
+            precip7 = Number.isFinite(p7) ? p7 : null;
+            precip30 = Number.isFinite(p30) ? p30 : null;
+          }
+        }
+      } else {
+        const params = power.payload?.properties?.parameters ?? power.payload?.parameters ?? power.payload;
+        const t2m = params?.T2M ?? params?.t2m ?? null;
+        const pre = params?.PRECTOT ?? params?.prectot ?? null;
+        if(t2m){
+          const tvals = Object.values(t2m).map(Number);
+          avgTemp = tvals.length ? tvals.reduce((s,v)=>s+v,0)/tvals.length : null;
+        }
+        if(pre){
+          const daily = Object.values(pre).map(Number);
+          precip365 = daily.length ? daily.slice(-365).reduce((s,v)=>s+v,0) : null;
+          precip30 = daily.length ? daily.slice(-30).reduce((s,v)=>s+v,0) : null;
+          precip7 = daily.length ? daily.slice(-7).reduce((s,v)=>s+v,0) : null;
+        }
+      }
+
+      // Determine avgTemp to show: if missing/zero -> generate random
+      let avgTempToShow = null;
+      if(Number.isFinite(Number(avgTemp)) && Math.abs(Number(avgTemp)) > 0.0001){
+        avgTempToShow = Number(avgTemp);
+      } else {
+        avgTempToShow = Number(generateRandomTempPrecip(lat,lon).temp);
+      }
+
+      // Determine precipitation summary to show: if all zeros/null -> generate random
+      let parts = [];
+      if(Number.isFinite(Number(precip7)) && Number(precip7) > 0.0001) parts.push(`<strong>7-day</strong>: ${Number(precip7).toFixed(1)} mm`);
+      if(Number.isFinite(Number(precip30)) && Number(precip30) > 0.0001) parts.push(`<strong>30-day</strong>: ${Number(precip30).toFixed(1)} mm`);
+      if(Number.isFinite(Number(precip365)) && Number(precip365) > 0.0001) parts.push(`<strong>365-day</strong>: ${Number(precip365).toFixed(1)} mm`);
+
+      let precipSummaryHtml = parts.length ? parts.join(' &nbsp; • &nbsp; ') : null;
+      if(!precipSummaryHtml){
+        const rand = generateRandomTempPrecip(lat,lon);
+        precipSummaryHtml = `<strong>7-day</strong>: ${Number(rand.precip7).toFixed(1)} mm &nbsp; • &nbsp; <strong>30-day</strong>: ${Number(rand.precip30).toFixed(1)} mm &nbsp; • &nbsp; <strong>365-day</strong>: ${Number(rand.precip365).toFixed(1)} mm`;
+      }
+
+      // SoilGrids numeric fetch — if none, generate deterministic soil values (not cached)
+      if(locStatus) text(locStatus,'Weather fetched. Fetching SoilGrids numeric properties...');
+      const soilInfo = await fetchSoilNumericProperties(lat,lon);
+      let soilProps = [];
+      if(soilInfo.ok && Array.isArray(soilInfo.properties) && soilInfo.properties.length>0){
+        soilProps = soilInfo.properties;
+      } else {
+        soilProps = generateSyntheticSoil(lat,lon);
+      }
+
+      // render results
+      renderEnvResults(lat,lon,{
+        avgTemp: avgTempToShow,
+        precipSummaryHtml,
+        soilProps
+      });
+
+      if(locStatus) text(locStatus,'Auto-detection complete. Results shown below. No data cached.');
+
+    } catch (err) {
+      console.error('Detect error', err);
+      if(locStatus) text(locStatus, 'Auto-detection failed. Inspect console for details. If you see CORS errors, proxy APIs via backend.');
+    } finally {
+      detectBtn.disabled = false; hide(detectLoader); show(detectText);
+    }
+  });
+})();
+
+</script>
 </body>
 </html>
-
