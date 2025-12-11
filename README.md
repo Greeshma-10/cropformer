@@ -34,6 +34,7 @@ Extract meaningful features and local patterns automatically from the raw SNP (g
 ### 🧠 2. Multi-Head Self-Attention (Transformers)
 Captures complex, long-range genetic interactions and learns which markers influence the target trait most strongly.
 
+###Model for Maize,rice,wheat,tomato and foxtail millet
 ### Model Categories
 - **Genetics-Only Models:** Use only genetic (SNP) data.  
   *(Maize, Tomato, Rice)*
@@ -80,7 +81,7 @@ cropformer-webapp/
 │
 └── requirements.txt # Required Python packages
 ```
-
+##Installing and setup
 
 ## 🧰 Setup and Installation
 
